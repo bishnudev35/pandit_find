@@ -1,27 +1,32 @@
-import React,{useState} from "react";
-import UserLogin from "../component/UserLogin.jsx";
-import PanditLogin from "../component/PanditLogin.jsx";
+import React, { useState } from "react";
 import { User, Crown, CheckCircle, Calendar, Clock } from "lucide-react";
-function Login() {
-      const [role, setRole] = useState("userSignup"); // default role
-     
-       const handleRoleChange = (newRole) => {
-         setRole(newRole);}
+import UserSignup from "../component/UserSignup.jsx";
+
+import PanditSignup from "../component/PanditSignup.jsx";
+
+function Signup() {
+  const [role, setRole] = useState("userSignup"); // default role
+
+  const handleRoleChange = (newRole) => {
+    setRole(newRole);
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen w-screen ">
- <div className="text-3xl font-bold mb-8 text-center">
-      Welcome to the Login Page
- </div>
-     <div className="bg-white/30 backdrop-blur-lg w-full max-w-4/6 rounded-4xl shadow-lg flex md:flex-row overflow-hidden">
+    <div className="flex flex-col items-center justify-center min-h-screen w-screen">
+      <div className="text-3xl font-bold mb-8 text-center">
+        Welcome to the Signup Page
+      </div>
+
+      <div className="bg-white/30 backdrop-blur-lg w-full max-w-4/6 rounded-4xl shadow-lg flex md:flex-row overflow-hidden">
         {/* Left Side */}
         <div className="md:w-3/5 flex flex-col justify-center p-8">
           {/* Role Selector */}
           <div className="mb-2">
-            <div className="flex gap-2 ml-11 mr-37 bg-gray-100/50 rounded-2xl backdrop-blur-sm">
+            <div className="flex gap-2 ml-9 mr-9 bg-gray-100/50 rounded-2xl backdrop-blur-sm">
               <button
-                onClick={() => handleRoleChange("user")}
+                onClick={() => handleRoleChange("userSignup")}
                 className={`flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${
-                  role === "user"
+                  role === "userSignup"
                     ? "bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-lg transform scale-[1.02]"
                     : "text-gray-600 hover:bg-white/50"
                 }`}
@@ -31,9 +36,9 @@ function Login() {
               </button>
 
               <button
-                onClick={() => handleRoleChange("pandit")}
+                onClick={() => handleRoleChange("panditSignup")}
                 className={`flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${
-                  role === "pandit"
+                  role === "panditSignup"
                     ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg transform scale-[1.02]"
                     : "text-gray-600 hover:bg-white/50"
                 }`}
@@ -45,9 +50,9 @@ function Login() {
           </div>
 
           {/* Conditional Forms */}
-          {role === "user" && <UserLogin />}
-          {role === "pandit" && (
-           <PanditLogin />
+          {role === "userSignup" && <UserSignup />}
+          {role === "panditSignup" && (
+           <PanditSignup />
           )}
         </div>
 
@@ -65,5 +70,6 @@ function Login() {
       </div>
     </div>
   );
-}
-export default Login;
+}   
+
+export default Signup;
