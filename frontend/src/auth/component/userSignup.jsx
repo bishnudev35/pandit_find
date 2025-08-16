@@ -143,7 +143,7 @@ function UserSignup() {
       {/* Login Link */}
       <p className="text-center text-sm text-gray-600">
         Already have an account?
-        <a href="#" className="text-orange-500 hover:text-orange-600 font-medium ml-1">
+        <a href="/" className="text-orange-500 hover:text-orange-600 font-medium ml-1">
           Sign in
         </a>
       </p>

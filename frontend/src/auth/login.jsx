@@ -1,14 +1,14 @@
 import React,{useState} from "react";
-import UserLogin from "../component/UserLogin.jsx";
-import PanditLogin from "../component/PanditLogin.jsx";
 import { User, Crown, CheckCircle, Calendar, Clock } from "lucide-react";
+import UserLogin from "./component/userLogin";
+import PanditLogin from "./component/panditLogin";
 function Login() {
-      const [role, setRole] = useState("userSignup"); // default role
+      const [role, setRole] = useState("user"); // default role
      
        const handleRoleChange = (newRole) => {
          setRole(newRole);}
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen w-screen ">
+    <div className="flex flex-col items-center justify-center h-screen w-screen ">
  <div className="text-3xl font-bold mb-8 text-center">
       Welcome to the Login Page
  </div>

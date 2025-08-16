@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { User, Crown, CheckCircle, Calendar, Clock } from "lucide-react";
-import UserSignup from "../component/UserSignup.jsx";
-
-import PanditSignup from "../component/PanditSignup.jsx";
+import UserSignup from "./component/userSignup";
+import PanditSignup from "./component/panditSignup";
 
 function Signup() {
   const [role, setRole] = useState("userSignup"); // default role
