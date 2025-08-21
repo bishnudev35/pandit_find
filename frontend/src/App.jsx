@@ -6,6 +6,9 @@ import UserDashboard from "./userDashboard/dasboard.jsx";
 import Header from "./userDashboard/header/header.jsx"; // Assuming you have a Header component
 import AboutUs from "./userDashboard/abuotUs.jsx"; // Assuming you have an AboutUs component
 import AllBooking from "./userDashboard/allBooking.jsx";
+import PanditDashboard from "./panditDashboard/dsahboard.jsx";
+import PanditEarnings from "./panditDashboard/totalEarnings.jsx"; // Assuming you have a PanditEarnings component
+// Assuming you have a PanditDashboard component
 export default function App() {
   return (
     <BrowserRouter>
@@ -25,6 +28,8 @@ export default function App() {
           <Route path="/header" element={<Header />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/all-bookings" element={<AllBooking />} />
+          <Route path="/pandit-dashboard" element={<PanditDashboard />} />
+          <Route path="/pandit-earnings" element={<PanditEarnings />} />
           {/* Add more routes as needed */}
         </Routes>
 
