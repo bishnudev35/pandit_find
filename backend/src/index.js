@@ -10,7 +10,7 @@ import InitilizeCalender from './router/initalizeCalender.router.js'; // Adjust 
 import TimeBlock from './router/timeBlock.router.js'; // Adjust the path as necessary
 import TimeAvailable from './router/timeAvaliable.router.js';
 import Booking from  './router/booking.router.js' // Adjust the path as necessary
-
+import CancelBooking from './router/cancelBooking.js'; // Adjust the path as necessary
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(express.json());
@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
 
 
   app.use('/api/v1',Booking); // Adjust the path as necessary
-
+  app.use('/api/v1',CancelBooking); // Adjust the path as necessary
 
   app.use('/api/v1/pandit',PanditLogin); // Adjust the path as necessary
   app.use('/api/v1/pandit',PanditSignup ); // Adjust the path as necessary
