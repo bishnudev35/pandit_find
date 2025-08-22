@@ -8,56 +8,53 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   name      String
-  email     String    @unique
+  email     String   @unique
   contactNo String
   password  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   addresses Address[]
-  
-  bookings  Booking[]
-}
 
+  bookings Booking[]
+}
 
 model Pandit {
-  id          String     @id @default(cuid())
-  name        String
-  email       String     @unique
-  contactNo   String
-  password    String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  contactNo String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  services    String[]
-  rating      Float      @default(0)
-  experience  Int
+  services   String[]
+  rating     Float    @default(0)
+  experience Int
 
+  address Location?
 
-  address   Location?  
-
-  bookings    Booking[]
+  bookings     Booking[]
   availability Calendar[]
 }
+
 model Location {
-    id        String   @id @default(cuid())
+  id        String   @id @default(cuid())
   street    String
   city      String
   state     String
   country   String
   zipCode   String
+  latitude  Float?
+  longitude Float?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  panditId  String @unique
-  pandit    Pandit ? @relation(fields: [panditId], references: [id])
-  
-
+  panditId String  @unique
+  pandit   Pandit? @relation(fields: [panditId], references: [id])
 }
-
 
 model Address {
   id        String   @id @default(cuid())
@@ -66,27 +63,29 @@ model Address {
   state     String
   country   String
   zipCode   String
+  latitude  Float?
+  longitude Float?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  userId    String?
-  user      User?     @relation(fields: [userId], references: [id])
-  bookings  Booking[] // ✅ One address can be used in multiple bookings
+  userId   String?
+  user     User?     @relation(fields: [userId], references: [id])
+  bookings Booking[] // ✅ One address can be used in multiple bookings
 }
 
 model Booking {
-  id        String     @id @default(cuid())
+  id        String   @id @default(cuid())
   userId    String
   panditId  String
   duration  Int
   service   String
   feedback  String?
-  status    String     @default("BOOKED") // Possible values: BOOKED, COMPLETED, CANCELLED
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  status    String   @default("BOOKED") // Possible values: BOOKED, COMPLETED, CANCELLED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  addressId String     // ✅ Foreign key to Address
-  address   Address    @relation(fields: [addressId], references: [id])
+  addressId String // ✅ Foreign key to Address
+  address   Address @relation(fields: [addressId], references: [id])
 
   user      User       @relation(fields: [userId], references: [id])
   pandit    Pandit     @relation(fields: [panditId], references: [id])
@@ -94,12 +93,11 @@ model Booking {
 }
 
 model Calendar {
-  id        String      @id @default(cuid())
-  panditId  String
-  date      DateTime
+  id       String   @id @default(cuid())
+  panditId String
+  date     DateTime
 
-  
-  pandit    Pandit      @relation(fields: [panditId], references: [id])
+  pandit Pandit @relation(fields: [panditId], references: [id])
 
   timeSlots TimeSlot[]
 }
@@ -110,7 +108,7 @@ model TimeSlot {
   startTime  DateTime
   endTime    DateTime
   status     String
-  bookingId String?
-  booking   Booking?    @relation("BookingSlots", fields: [bookingId], references: [id]) // ✅ relation matched
+  bookingId  String?
+  booking    Booking? @relation("BookingSlots", fields: [bookingId], references: [id]) // ✅ relation matched
   calendar   Calendar @relation(fields: [calendarId], references: [id])
 }

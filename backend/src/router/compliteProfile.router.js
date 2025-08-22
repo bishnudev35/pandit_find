@@ -11,6 +11,24 @@ router.post('/completePanditProfile', async (req, res) => {
     if (!panditId || !name || !contactNo || !services || !experience || !address) {
       return res.status(400).json({ message: "All fields are required" });
     }
+   const fullAddress = `${address.street}, ${address.city}, ${address.state}, ${address.country}, ${address.zipCode}`;
+    // Call Google Maps Geocoding API
+    const response = await axios.get(
+      `https://maps.googleapis.com/maps/api/geocode/json`,
+      {
+        params: {
+          address: fullAddress,
+          key: process.env.GOOGLE_MAPS_API_KEY,
+        },
+      }
+    );
+    console.log(response.data);
+    if (response.data.status !== "OK") {
+    return res.status(400).json({ message: "Failed to fetch coordinates" });
+    }
+
+    const { lat, lng } = response.data.results[0].geometry.location;
+
 
     // Update pandit details
     const updatedPandit = await prisma.pandit.update({
@@ -28,6 +46,8 @@ router.post('/completePanditProfile', async (req, res) => {
               state: address.state,
               country: address.country,
               zipCode: address.zipCode,
+              latitude: lat,
+              longitude: lng,
             },
             create: {
               street: address.street,
@@ -35,6 +55,8 @@ router.post('/completePanditProfile', async (req, res) => {
               state: address.state,
               country: address.country,
               zipCode: address.zipCode,
+              latitude: lat,
+              longitude: lng,
             },
           },
         },

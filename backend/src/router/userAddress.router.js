@@ -1,5 +1,6 @@
 import express from "express";
 import prisma from "../lib/db.js";
+import axios from "axios";
 
 const router = express.Router();
 
@@ -20,13 +21,32 @@ router.post("/userAddress", async (req, res) => {
         .status(400)
         .json({ message: "User ID and complete address are required" });
     }
-    const user = await prisma.user.findUnique({
-      where: { id: userId },    
-    });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+
+    // Check user exists
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Build full address string
+    const fullAddress = `${address.street}, ${address.city}, ${address.state}, ${address.country}, ${address.zipCode}`;
+    console.log(process.env.GOOGLE_MAPS_API_KEY)
+    // Call Google Maps Geocoding API
+    const response = await axios.get(
+      `https://maps.googleapis.com/maps/api/geocode/json`,
+      {
+        params: {
+          address: fullAddress,
+          key: process.env.GOOGLE_MAPS_API_KEY,
+        },
+      }
+    );
+    console.log(response.data);
+    if (response.data.status !== "OK") {
+      return res.status(400).json({ message: "Failed to fetch coordinates" });
     }
-    // Create a new address
+
+    const { lat, lng } = response.data.results[0].geometry.location;
+
+    // Save new address with lat/lng
     const newAddress = await prisma.address.create({
       data: {
         userId,
@@ -35,6 +55,8 @@ router.post("/userAddress", async (req, res) => {
         state: address.state,
         country: address.country,
         zipCode: address.zipCode,
+        latitude: lat,
+        longitude: lng,
       },
     });
 
@@ -47,4 +69,5 @@ router.post("/userAddress", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
 export default router;
