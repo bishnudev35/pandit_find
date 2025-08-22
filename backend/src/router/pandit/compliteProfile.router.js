@@ -1,17 +1,20 @@
-import express from 'express';
-import prisma from '../lib/db.js';
+import express from "express";
+import prisma from "../../lib/db.js";
+import axios from "axios";
 
 const router = express.Router();
 
-router.post('/completePanditProfile', async (req, res) => {
+router.post("/completePanditProfile", async (req, res) => {
   const { panditId, name, contactNo, services, experience, address } = req.body;
-  // address should be: { street, city, state, country, zipCode }
+  // address = { street, city, state, country, zipCode }
 
   try {
     if (!panditId || !name || !contactNo || !services || !experience || !address) {
       return res.status(400).json({ message: "All fields are required" });
     }
-   const fullAddress = `${address.street}, ${address.city}, ${address.state}, ${address.country}, ${address.zipCode}`;
+
+    const fullAddress = `${address.street}, ${address.city}, ${address.state}, ${address.country}, ${address.zipCode}`;
+
     // Call Google Maps Geocoding API
     const response = await axios.get(
       `https://maps.googleapis.com/maps/api/geocode/json`,
@@ -22,21 +25,25 @@ router.post('/completePanditProfile', async (req, res) => {
         },
       }
     );
-    console.log(response.data);
+
     if (response.data.status !== "OK") {
-    return res.status(400).json({ message: "Failed to fetch coordinates" });
+      return res.status(400).json({ message: "Failed to fetch coordinates" });
     }
 
     const { lat, lng } = response.data.results[0].geometry.location;
 
-
+    const pandit = await prisma.pandit.findUnique({
+      where: { id: panditId },});
+    if (!pandit) {
+      return res.status(404).json({ message: "Pandit not found" });
+    }
     // Update pandit details
     const updatedPandit = await prisma.pandit.update({
       where: { id: panditId },
       data: {
         name,
         contactNo,
-        services,
+        services: { set: services }, // ✅ since it's a String[]
         experience,
         address: {
           upsert: {

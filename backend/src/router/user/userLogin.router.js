@@ -1,7 +1,7 @@
 import express from 'express';
-import prisma from '../lib/db.js';
+import prisma from '../../lib/db.js';
 import bcrypt from 'bcrypt'; // Assuming you are using bcrypt for password hashing
-import jwtSign from '../util/jwt.js';
+import jwtSign from '../../util/jwt.js';
 const router = express.Router();
 
 router.post("/userLogin", async (req, res) => {

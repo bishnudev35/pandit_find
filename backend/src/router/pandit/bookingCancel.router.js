@@ -1,5 +1,5 @@
 import express from "express";
-import prisma from "../lib/db.js";
+import prisma from "../../lib/db.js";
 
 const router = express.Router();
 
@@ -38,7 +38,7 @@ router.post("/cancelBooking", async (req, res) => {
                     },
                 },
                 data: {
-                    status: "AVAILABLE",
+                    status: "BLOCKED",
                 },
             });
         }

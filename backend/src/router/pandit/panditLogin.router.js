@@ -1,7 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcrypt'; // Assuming you are using bcrypt for password hashing
-import jwtSign from '../util/jwt.js';
-import prisma from '../lib/db.js';
+import jwtSign from '../../util/jwt.js';
+import prisma from '../../lib/db.js'
 
 const router=express.Router();
 

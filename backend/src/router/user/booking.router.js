@@ -1,5 +1,5 @@
 import express from "express";
-import prisma from "../lib/db.js";
+import prisma from "../../lib/db.js";
 
 const router = express.Router();
 
@@ -26,7 +26,10 @@ router.post("/booking", async (req, res) => {
     // 3. Check if pandit exists
     const pandit = await prisma.pandit.findUnique({ where: { id: panditId } });
     if (!pandit) return res.status(404).json({ message: "Pandit not found" });
-
+   
+    const otp = Math.floor(100000 + Math.random() * 900000);
+     console.log(otp); // Example: 483729
+// Generate a 4-digit OTP
     // 4. Sort startTimes
     const sortedTimes = [...startTimes].sort();
 
@@ -76,6 +79,7 @@ router.post("/booking", async (req, res) => {
         duration,
         addressId,
         status: "BOOKED",
+        Otp: otp,
       },
     });
 

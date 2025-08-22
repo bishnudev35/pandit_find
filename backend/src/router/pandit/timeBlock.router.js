@@ -1,11 +1,12 @@
-
 import express from 'express';
-import prisma from '../lib/db.js';
+import prisma from '../../lib/db.js';
 
 const router = express.Router();
-router.post('/timeAvailable', async (req, res) => {
+
+router.post('/blockTime', async (req, res) => {
     const { panditId, date, startTimes } = req.body;
     // startTimes = [ "2025-08-21T08:00:00.000Z", "2025-08-21T08:30:00.000Z", ... ]
+
     try {
         if (!panditId || !date || !Array.isArray(startTimes) || startTimes.length === 0) {
             return res.status(400).json({ message: "Pandit ID, date, and startTimes array are required" });
@@ -38,11 +39,11 @@ router.post('/timeAvailable', async (req, res) => {
                 calendarId: calendar.id,
                 startTime: { in: startTimes.map(s => new Date(s)) },
             },
-            data: { status: "AVAILABLE" },
+            data: { status: "BLOCKED" },
         });
 
         return res.status(200).json({
-            message: "Now time slots set to available successfully",
+            message: "Time slots blocked successfully",
             count: updated.count,
         });
     } catch (error) {
@@ -50,4 +51,5 @@ router.post('/timeAvailable', async (req, res) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 });
+
 export default router;
