@@ -18,6 +18,8 @@ import AllPanditBooking from './router/pandit/allBooking.router.js' // Adjust th
 import AllUserBooking from './router/user/allBooking.router.js' // Adjust the path as necessary
 import BookingCancel from  './router/pandit/bookingCancel.router.js'
 import UserProfile from './router/user/userProfile.router.js'
+import ReputedPandit from './router/user/reputedPandit.router.js'
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(express.json());
@@ -29,9 +31,9 @@ app.get('/', (req, res) => {
   app.use('/api/v1/user',SearchByLocation); // Adjust the path as necessary
   app.use('/api/v1/user',AllUserBooking); // Adjust the path as necessary
   app.use('/api/v1/user',UserProfile);
-
-  app.use('/api/v1',Booking); // Adjust the path as necessary
-  app.use('/api/v1',CancelBooking); // Adjust the path as necessary
+  app.use('/api/v1/user',ReputedPandit);
+  app.use('/api/v1/user',Booking); // Adjust the path as necessary
+  app.use('/api/v1/user',CancelBooking); // Adjust the path as necessary
 
   app.use('/api/v1/pandit',PanditLogin); // Adjust the path as necessary
   app.use('/api/v1/pandit',PanditSignup ); // Adjust the path as necessary
