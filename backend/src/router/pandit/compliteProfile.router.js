@@ -1,11 +1,13 @@
 import express from "express";
 import prisma from "../../lib/db.js";
 import axios from "axios";
+import authMiddleware from "../../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/completePanditProfile", async (req, res) => {
-  const { panditId, name, contactNo, services, experience, address } = req.body;
+router.post("/completePanditProfile",authMiddleware, async (req, res) => {
+  const {  name, contactNo, services, experience, address } = req.body;
+  const {panditId} = req.user
   // address = { street, city, state, country, zipCode }
 
   try {

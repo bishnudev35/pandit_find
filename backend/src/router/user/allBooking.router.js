@@ -1,10 +1,11 @@
 import express from 'express';
 import prisma from '../../lib/db.js';
+import authMiddleware from '../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get("/allBooking/:userId", async (req, res) => { 
-    const { userId } = req.params;
+router.get("/allBooking/:userId",authMiddleware, async (req, res) => { 
+    const { userId } =req.user;
     try {
         if (!userId) {
         return res.status(400).json({ message: "User ID is required" });

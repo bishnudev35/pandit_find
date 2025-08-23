@@ -1,12 +1,15 @@
 import express from "express";
 import prisma from "../../lib/db.js";
 import axios from "axios";
+import authMiddleware from "../../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/userAddress", async (req, res) => {
-  const { userId, address } = req.body;
-
+router.post("/userAddress",authMiddleware, async (req, res) => {
+  const { address } = req.body;
+  console.log(req.user);
+  const {userId}=req.user;
+  
   try {
     if (
       !userId ||

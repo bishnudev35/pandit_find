@@ -1,10 +1,12 @@
 
 import express from 'express';
 import prisma from '../../lib/db.js';
+import authMiddleware from '../../middleware/authMiddleware.js';
 
 const router = express.Router();
 router.post('/timeAvailable', async (req, res) => {
-    const { panditId, date, startTimes } = req.body;
+    const {date, startTimes } = req.body;
+    const {panditId}=req.user;
     // startTimes = [ "2025-08-21T08:00:00.000Z", "2025-08-21T08:30:00.000Z", ... ]
     try {
         if (!panditId || !date || !Array.isArray(startTimes) || startTimes.length === 0) {

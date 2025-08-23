@@ -1,6 +1,6 @@
 import express from 'express';
 import bcrypt from 'bcrypt'; // Assuming you are using bcrypt for password hashing
-import jwtSign from '../../util/jwt.js';
+import { generateAccessToken,generateRefreshToken } from '../../util/jwt.js';
 import prisma from '../../lib/db.js';
 
 const router = express.Router();
@@ -46,7 +46,8 @@ router.post('/panditSignup', async (req, res) => {
             return res.status(500).json({ message: "Pandit creation failed" });
         }
         
-        const token = jwtSign(newPandit, process.env.JWT_SECRET);
+        const accessToken=generateAccessToken({panditId:newPandit.id},process.env.ACCESS_TOKEN_SECRET);
+        const refreshToken=generateRefreshToken({panditId:newPandit.id},process.env.REFRESH_TOKEN_SECRET);
         
         return res.status(201).json({
             message: "Pandit created successfully",
@@ -56,7 +57,8 @@ router.post('/panditSignup', async (req, res) => {
                 email: newPandit.email,
                 contactNo: newPandit.contactNo,
             },
-            token
+         accessToken,
+         refreshToken
         });
     } catch (error) {
         console.error("Signup error:", error);

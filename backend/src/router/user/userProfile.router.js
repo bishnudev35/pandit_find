@@ -1,10 +1,11 @@
 import express from 'express'
 import prisma from '../../lib/db.js'
+import authMiddleware from '../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/userProfile/:userId', async (req, res) => {
-    const { userId } = req.params;
+router.get('/userProfile/:userId',authMiddleware, async (req, res) => {
+    const { userId } = req.user;
 
     try {
         if (!userId) {

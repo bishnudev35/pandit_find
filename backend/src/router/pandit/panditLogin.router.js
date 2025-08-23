@@ -1,6 +1,6 @@
 import express from 'express';
 import bcrypt from 'bcrypt'; // Assuming you are using bcrypt for password hashing
-import jwtSign from '../../util/jwt.js';
+import { generateAccessToken,generateRefreshToken } from '../../util/jwt.js';
 import prisma from '../../lib/db.js'
 
 const router=express.Router();
@@ -25,8 +25,8 @@ router.post('/panditLogin',async(req,res)=>{
             return res.status(401).json({ message: "Invalid password" });
         }
        
-        // Generate JWT token
-        const token = jwtSign(pandit, process.env.JWT_SECRET);
+       const accessToken=generateAccessToken({panditId:pandit.id}, process.env.ACCESS_TOKEN_SECRET);
+       const refreshToken=generateRefreshToken({panditId:pandit.id},process.env.REFRESH_TOKEN_SECRET);
         return res.status(200).json({
             message: "Login successful",
             pandit: {
@@ -35,7 +35,8 @@ router.post('/panditLogin',async(req,res)=>{
                 email: pandit.email,
                 contactNo: pandit.contactNo,
             },
-            token
+           accessToken,
+           refreshToken
         });
     }
     catch(error){

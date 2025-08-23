@@ -1,5 +1,6 @@
 import express from "express";
 import prisma from "../../lib/db.js";
+import authMiddleware from "../../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -21,7 +22,7 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
   return R * c; // Distance in km
 }
 
-router.get("/searchByLocation", async (req, res) => {
+router.get("/searchByLocation",authMiddleware, async (req, res) => {
   try {
     const { addressId } = req.query;
 

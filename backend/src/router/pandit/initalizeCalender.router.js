@@ -1,5 +1,6 @@
 import express from "express";
 import prisma from "../../lib/db.js";
+import authMiddleware from "../../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -33,9 +34,9 @@ function generateSlotsForDay(dayStartUTC) {
   return slots;
 }
 
-router.post("/initializeCalendar", async (req, res) => {
-  const { panditId, startDate } = req.body; // startDate: ISO string
-  
+router.post("/initializeCalendar",authMiddleware, async (req, res) => {
+  const {  startDate } = req.body; // startDate: ISO string
+  const {panditId}=req.user
   try {
     if (!panditId || !startDate) {
       return res.status(400).json({ message: "Pandit ID and startDate are required" });

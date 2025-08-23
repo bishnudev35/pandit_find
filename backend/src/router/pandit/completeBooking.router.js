@@ -1,8 +1,9 @@
 import express from 'express';
 import prisma from '../../lib/db.js';
+import authMiddleware from '../../middleware/authMiddleware.js';
 
 const router = express.Router();
-router.post('/completeBooking', async (req, res) => {   
+router.post('/completeBooking',authMiddleware, async (req, res) => {   
 
     const {bookingId,otp} = req.body;
     try {

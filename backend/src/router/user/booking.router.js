@@ -1,5 +1,6 @@
 import express from "express";
 import prisma from "../../lib/db.js";
+import authMiddleware from "../../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -10,9 +11,9 @@ function add30Min(dateStr) {
   return date.toISOString();
 }
 
-router.post("/booking", async (req, res) => {
-  const { userId, panditId, startTimes, service, date, addressId } = req.body;
-
+router.post("/booking",authMiddleware, async (req, res) => {
+  const {  panditId, startTimes, service, date, addressId } = req.body;
+  const {userId}=req.user
   try {
     // 1. Validate input
     if (!userId || !panditId || !startTimes || !date || !service || !addressId) {

@@ -1,7 +1,7 @@
 import express from 'express';
 import prisma from '../../lib/db.js';
 import bcrypt from 'bcrypt'; // Assuming you are using bcrypt for password hashing
-import jwtSign from '../../util/jwt.js';
+import { generateAccessToken,generateRefreshToken } from '../../util/jwt.js';
 const router = express.Router();
 
 router.post("/userLogin", async (req, res) => {
@@ -23,9 +23,10 @@ router.post("/userLogin", async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid password" });
     }
-    const token=jwtSign(user, process.env.JWT_SECRET);
+     const accessToken=generateAccessToken({userId:user.id},process.env.ACCESS_TOKEN_SECRET);
+     const refreshToken=generateRefreshToken({userId:user.id},process.env.REFRESH_TOKEN_SECRET);
     return res.status(200).json({
-      message: "Login successful",user,token});
+      message: "Login successful",user,accessToken,refreshToken});
 
   } catch (error) {
     console.error("Login error:", error);

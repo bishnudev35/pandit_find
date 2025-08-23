@@ -1,12 +1,13 @@
 import express from 'express';
 import prisma from '../../lib/db.js';
+import authMiddleware from '../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/blockTime', async (req, res) => {
-    const { panditId, date, startTimes } = req.body;
+router.post('/blockTime',authMiddleware, async (req, res) => {
+    const { date, startTimes } = req.body;
     // startTimes = [ "2025-08-21T08:00:00.000Z", "2025-08-21T08:30:00.000Z", ... ]
-
+    const {panditId}=req.user;
     try {
         if (!panditId || !date || !Array.isArray(startTimes) || startTimes.length === 0) {
             return res.status(400).json({ message: "Pandit ID, date, and startTimes array are required" });

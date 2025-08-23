@@ -1,23 +1,15 @@
 import express from 'express';
 import prisma from '../../lib/db.js';
+import authMiddleware from '../../middleware/authMiddleware.js';
 
 const router = express.Router();
-router.get('/panditProfile/:id', async (req, res) => {
-    const { id } = req.params;
+router.get('/panditProfile/:id',authMiddleware, async (req, res) => {
+    const { panditId } = req.user;
 
     try {
         // Find pandit by ID
         const pandit = await prisma.pandit.findUnique({
-            where: { id: parseInt(id) },
-            include: {
-                // Include related data if necessary, e.g., bookings, reviews, etc.
-                name: true,
-                contactNo: true,    
-                email: true,
-                experience: true,
-                reating: true, // Assuming you have a rating field
-                services: true, // Assuming you have a services relation
-            }
+            where: { id:panditId },
         });
 
         if (!pandit) {

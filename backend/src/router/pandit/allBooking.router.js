@@ -1,9 +1,11 @@
 import express from "express";
 import prisma from "../../lib/db.js";
+import authMiddleware from "../../middleware/authMiddleware.js";
+
 
 const router = express.Router();
-router.get("/allBooking/:panditId", async (req, res) => {
-  const { panditId } = req.params;
+router.get("/allBooking/:panditId",authMiddleware, async (req, res) => {
+  const { panditId } = req.user;
   try {
     if (!panditId) {
       return res.status(400).json({ message: "Pandit ID is required" });
