@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-
+import { Eye, EyeOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 function PanditLogin() {
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     panditId: "",
-    password: ""
+    password: "",
   });
 
   // Handle Input Change
@@ -12,22 +14,46 @@ function PanditLogin() {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
-
+  const navigate = useNavigate();
   // Handle Form Submit
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const panditJson = {
       email: formData.email,
       panditId: formData.panditId,
-      password: formData.password
+      password: formData.password,
     };
+    try {
+      const response = await fetch(
+        "http://localhost:5400/api/v1/pandit/panditLogin",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json", // ✅ fixed case
+          },
+          body: JSON.stringify(panditJson),
+        }
+      );
 
-    console.log("Pandit JSON:", JSON.stringify(panditJson, null, 2));
-    alert("Login data logged in console!");
+      const data = await response.json(); // ✅ parse response JSON
+
+      if (response.ok) {
+        localStorage.setItem("accessToken", data.accessToken);
+        localStorage.setItem("refreshToken", data.refreshToken);
+        console.log("Login Success:", data);
+        alert("Login successful!");
+        navigate("/pandit-dashboard"); // ✅ redirect
+      } else {
+        alert(data.message || "Login failed!");
+      }
+    } catch (error) {
+      console.error("Error during Login:", error);
+      alert("Something went wrong. Please try again later.");
+    }
   };
 
   return (
@@ -63,17 +89,26 @@ function PanditLogin() {
           />
         </div>
 
-        {/* Password */}
+        {/* Password with Eye Icon */}
         <div>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="Password"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-orange-400"
-            required
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Password"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-orange-400"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
           <div className="text-right mt-1">
             <a href="#" className="text-sm text-orange-500 hover:underline">
               Forgot Password?
@@ -94,21 +129,30 @@ function PanditLogin() {
 
         {/* Social Login Buttons */}
         <div className="flex justify-center gap-4">
-          <button type="button" className="p-3 border rounded-full hover:bg-gray-100">
+          <button
+            type="button"
+            className="p-3 border rounded-full hover:bg-gray-100"
+          >
             <img
               src="https://www.svgrepo.com/show/355037/google.svg"
               alt="Google"
               className="w-5 h-5"
             />
           </button>
-          <button type="button" className="p-3 border rounded-full hover:bg-gray-100">
+          <button
+            type="button"
+            className="p-3 border rounded-full hover:bg-gray-100"
+          >
             <img
               src="https://www.svgrepo.com/show/512317/github-142.svg"
               alt="GitHub"
               className="w-5 h-5"
             />
           </button>
-          <button type="button" className="p-3 border rounded-full hover:bg-gray-100">
+          <button
+            type="button"
+            className="p-3 border rounded-full hover:bg-gray-100"
+          >
             <img
               src="https://www.svgrepo.com/show/448224/facebook.svg"
               alt="Facebook"

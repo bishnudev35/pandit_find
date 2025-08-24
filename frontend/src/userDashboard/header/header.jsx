@@ -1,35 +1,64 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { User, Bell, Calendar, Info, Home, Phone } from "lucide-react";
-
-// Dummy user data
-const userData = {
-  name: "Rajesh Kumar",
-  email: "rajesh.kumar@email.com",
-  location: "Mumbai, Maharashtra",
-};
-
-// Dummy notifications
-const notifications = [
-  { id: 1, message: "Booking confirmed for tomorrow's Ganesh Puja", time: "2 hours ago", unread: true },
-  { id: 2, message: "New pandit available in your area", time: "5 hours ago", unread: true },
-  { id: 3, message: "Payment successful for Satyanarayan Katha", time: "1 day ago", unread: false },
-];
 
 function Header() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [userData, setUserData] = useState(null);
+
+  // Dummy notifications
+  const notifications = [
+    { id: 1, message: "Booking confirmed for tomorrow's Ganesh Puja", time: "2 hours ago", unread: true },
+    { id: 2, message: "New pandit available in your area", time: "5 hours ago", unread: true },
+    { id: 3, message: "Payment successful for Satyanarayan Katha", time: "1 day ago", unread: false },
+  ];
 
   const unreadCount = notifications.filter((n) => n.unread).length;
 
-  // toggle functions (make sure only one is open at a time)
+  // Fetch user profile on component mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const refreshToken = localStorage.getItem("refreshToken")
+        if (!token) {
+          console.warn("No access token found, user may not be logged in.");
+          return;
+        }
+
+        const response = await fetch("http://localhost:5400/api/v1/user/userProfile", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "authorization": `${token}`,
+            "x-refresh-token": `${refreshToken}` // send token
+          },
+          credentials: "include", // to also send cookies if refreshToken stored in cookies
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch profile");
+        }
+
+        const data = await response.json();
+        setUserData(data.user || data); // adjust based on backend response
+      } catch (error) {
+        console.error("Error during profile fetching:", error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  // toggle functions
   const toggleNotifications = () => {
     setShowNotifications((prev) => !prev);
-    setShowUserMenu(false); // close user menu if open
+    setShowUserMenu(false);
   };
 
   const toggleUserMenu = () => {
     setShowUserMenu((prev) => !prev);
-    setShowNotifications(false); // close notifications if open
+    setShowNotifications(false);
   };
 
   return (
@@ -111,8 +140,12 @@ function Header() {
                   <User className="w-6 h-6 text-white" />
                 </div>
                 <div className="hidden sm:block text-left">
-                  <p className="text-sm font-semibold text-gray-800">{userData.name}</p>
-                  <p className="text-xs text-gray-600">{userData.location}</p>
+                  <p className="text-sm font-semibold text-gray-800">
+                    {userData ? userData.name : "Guest"}
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    {userData ? userData.location : "Not Available"}
+                  </p>
                 </div>
               </button>
 
@@ -124,18 +157,32 @@ function Header() {
                         <User className="w-7 h-7 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-800">{userData.name}</h3>
-                        <p className="text-sm text-gray-600">{userData.email}</p>
-                        <p className="text-xs text-orange-600">{userData.location}</p>
+                        <h3 className="font-semibold text-gray-800">
+                          {userData ? userData.name : "Guest User"}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {userData ? userData.email : "No email"}
+                        </p>
+                        <p className="text-xs text-orange-600">
+                          {userData ? userData.location : ""}
+                        </p>
                       </div>
                     </div>
                   </div>
                   <div className="p-2">
-                    <button className="w-full text-left p-2 hover:bg-orange-50 rounded-lg text-sm">Profile Settings</button>
-                    <button className="w-full text-left p-2 hover:bg-orange-50 rounded-lg text-sm">Payment Methods</button>
-                    <button className="w-full text-left p-2 hover:bg-orange-50 rounded-lg text-sm">Help & Support</button>
+                    <button className="w-full text-left p-2 hover:bg-orange-50 rounded-lg text-sm">
+                      Profile Settings
+                    </button>
+                    <button className="w-full text-left p-2 hover:bg-orange-50 rounded-lg text-sm">
+                      Payment Methods
+                    </button>
+                    <button className="w-full text-left p-2 hover:bg-orange-50 rounded-lg text-sm">
+                      Help & Support
+                    </button>
                     <hr className="my-2" />
-                    <button className="w-full text-left p-2 hover:bg-red-50 rounded-lg text-sm text-red-600">Sign Out</button>
+                    <button className="w-full text-left p-2 hover:bg-red-50 rounded-lg text-sm text-red-600">
+                      Sign Out
+                    </button>
                   </div>
                 </div>
               )}

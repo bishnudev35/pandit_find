@@ -4,9 +4,9 @@ import authMiddleware from '../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/userProfile/:userId',authMiddleware, async (req, res) => {
+router.get('/userProfile',authMiddleware, async (req, res) => {
     const { userId } = req.user;
-
+    console.log(req.user)
     try {
         if (!userId) {
             return res.status(400).json({ error: "userId not found!" });

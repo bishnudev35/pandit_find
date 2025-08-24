@@ -1,10 +1,15 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react"; // 👈 import icons
 
 function UserLogin() {
+  const [showPassword, setShowPassword] = useState(false); // 👈 state for toggle
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
+
+  const navigate = useNavigate();
 
   // Handle Input Change
   const handleChange = (e) => {
@@ -16,7 +21,7 @@ function UserLogin() {
   };
 
   // Handle Form Submit
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const userJson = {
@@ -24,8 +29,33 @@ function UserLogin() {
       password: formData.password
     };
 
-    console.log("User JSON:", JSON.stringify(userJson, null, 2));
-    alert("Login data logged in console!");
+    try {
+      const response = await fetch(
+        "http://localhost:5400/api/v1/user/userLogin",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json", // ✅ fixed case
+          },
+          body: JSON.stringify(userJson),
+        }
+      );
+
+      const data = await response.json(); // ✅ parse response JSON
+
+      if (response.ok) {
+        localStorage.setItem("accessToken", data.accessToken);
+        localStorage.setItem("refreshToken", data.refreshToken);
+        console.log("Login Success:", data);
+        alert("Login successful!");
+        navigate("/dashboard"); // ✅ redirect
+      } else {
+        alert(data.message || "Login failed!");
+      }
+    } catch (error) {
+      console.error("Error during Login:", error);
+      alert("Something went wrong. Please try again later.");
+    }
   };
 
   return (
@@ -48,17 +78,26 @@ function UserLogin() {
           />
         </div>
 
-        {/* Password */}
+        {/* Password with Show/Hide */}
         <div>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="Password"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-orange-400"
-            required
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Password"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-orange-400"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
           <div className="text-right mt-1">
             <a href="#" className="text-sm text-orange-500 hover:underline">
               Forgot Password?

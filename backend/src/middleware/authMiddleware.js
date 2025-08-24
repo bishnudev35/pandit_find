@@ -5,7 +5,7 @@ const authMiddleware = (req, res, next) => {
   try {
     // Access token usually comes from Authorization header: "Bearer <token>"
     const authHeader = req.headers["authorization"];
-  //  console.log(authHeader)
+   console.log(authHeader)
     const accessToken = authHeader
     const refreshToken = req.cookies?.refreshToken || req.headers["x-refresh-token"];
 
