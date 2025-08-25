@@ -12,7 +12,7 @@ function add30Min(dateStr) {
 }
 
 router.post("/booking",authMiddleware, async (req, res) => {
-  const {  panditId, startTimes, service, date, addressId } = req.body;
+  const {panditId, startTimes, service, date, addressId } = req.body;
   const {userId}=req.user
   try {
     // 1. Validate input

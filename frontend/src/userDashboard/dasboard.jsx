@@ -1,227 +1,163 @@
-import React, { useState, useEffect } from "react";
-import {
-  Search,
-  MapPin,
-  Star,
-  Clock,
-  Calendar,
-  User,
-  Bell,
-  Filter,
-  ChevronRight,
-  X,
-  Check,
-  Phone,
-  Mail,
-  Award,
-} from "lucide-react";
+import React, { useEffect, useState } from "react";
 import Headers from "./header/header.jsx";
-import SearchSection from "./components/searchSection";
-import PanditSection from "./components/panditSection";
-import AvailableCalendar from "./components/calender";
-import PanditBooking from "./components/panditBooking";
-import Accknoledgement from "./components/accknoledgement";
+import { BadgeCheck, MapPin, Star, Clock, Phone, Mail, Loader2 } from "lucide-react";
+
 const UserDashboard = () => {
-  const [selectedPandit, setSelectedPandit] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
-  const [bookingStep, setBookingStep] = useState("search"); // search, calendar, booking, confirmation
-  const [searchTerm, setSearchTerm] = useState("");
-  const [locationFilter, setLocationFilter] = useState("");
-  const [serviceFilter, setServiceFilter] = useState("");
+  const [pandits, setPandits] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Sample pandit data
-  const pandits = [
-    {
-      id: 1,
-      name: "Pandit Rajesh Sharma",
-      location: "Siliguri, West Bengal",
-      rating: 4.8,
-      reviews: 127,
-      experience: "12 years",
-      services: ["Marriage Ceremony", "Griha Pravesh", "Satyanarayan Puja"],
-      hourlyRate: 800,
-      avatar: "🕉️",
-      verified: true,
-      languages: ["Hindi", "Bengali", "Sanskrit"],
-    },
-    {
-      id: 2,
-      name: "Pandit Krishnan Iyer",
-      location: "Jalpaiguri, West Bengal",
-      rating: 4.9,
-      reviews: 89,
-      experience: "15 years",
-      services: ["Ganesh Puja", "Durga Puja", "Marriage Ceremony"],
-      hourlyRate: 1200,
-      avatar: "🕉️",
-      verified: true,
-      languages: ["Tamil", "Hindi", "Sanskrit"],
-    },
-    {
-      id: 3,
-      name: "Pandit Amit Bhattacharya",
-      location: "Siliguri, West Bengal",
-      rating: 4.7,
-      reviews: 156,
-      experience: "8 years",
-      services: ["Kali Puja", "Lakshmi Puja", "Griha Pravesh"],
-      hourlyRate: 600,
-      avatar: "🕉️",
-      verified: true,
-      languages: ["Bengali", "Hindi", "Sanskrit"],
-    },
-  ];
+  useEffect(() => {
+    const fetchPandits = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
 
-  // Generate calendar dates for next 15 days
-  const generateCalendarDates = () => {
-    const dates = [];
-    const today = new Date();
+        if (!token) {
+          console.warn("⚠️ No access token found, user may not be logged in.");
+          setLoading(false);
+          return;
+        }
 
-    for (let i = 0; i < 15; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      dates.push({
-        date: date,
-        dateStr: date.toISOString().split("T")[0],
-        day: date.getDate(),
-        month: date.toLocaleDateString("en-US", { month: "short" }),
-        weekday: date.toLocaleDateString("en-US", { weekday: "short" }),
-      });
-    }
-    return dates;
-  };
+        const response = await fetch(
+          "http://localhost:5400/api/v1/user/reputedPandit",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: "include",
+          }
+        );
 
-  // Generate time slots
-  const generateTimeSlots = () => {
-    const slots = [];
-    const startHour = 8;
-    const endHour = 20;
+        if (!response.ok) {
+          throw new Error("❌ Failed to fetch pandit details");
+        }
 
-    for (let hour = startHour; hour < endHour; hour++) {
-      slots.push({
-        time: `${hour}:00`,
-        display: `${hour > 12 ? hour - 12 : hour}:00 ${
-          hour >= 12 ? "PM" : "AM"
-        }`,
-        available: Math.random() > 0.3, // Random availability for demo
-      });
-      slots.push({
-        time: `${hour}:30`,
-        display: `${hour > 12 ? hour - 12 : hour}:30 ${
-          hour >= 12 ? "PM" : "AM"
-        }`,
-        available: Math.random() > 0.3,
-      });
-    }
-    return slots;
-  };
+        const data = await response.json();
+        setPandits(data || []); // data is array
+      } catch (err) {
+        console.error("Error fetching pandits:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const calendarDates = generateCalendarDates();
-  const timeSlots = generateTimeSlots();
-
-  const handlePanditSelect = (pandit) => {
-    setSelectedPandit(pandit);
-    setBookingStep("calendar");
-  };
-
-  const handleTimeSlotSelect = (date, time) => {
-    setSelectedDate(date);
-    setSelectedTime(time);
-    setBookingStep("booking");
-  };
-
-  const handleBookingConfirm = () => {
-    setBookingStep("confirmation");
-  };
-
-  const resetBooking = () => {
-    setBookingStep("search");
-    setSelectedPandit(null);
-    setSelectedDate(null);
-    setSelectedTime(null);
-  };
-
-  const filteredPandits = pandits.filter((pandit) => {
-    const matchesSearch =
-      pandit.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pandit.services.some((service) =>
-        service.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    const matchesLocation =
-      !locationFilter ||
-      pandit.location.toLowerCase().includes(locationFilter.toLowerCase());
-    const matchesService =
-      !serviceFilter || pandit.services.includes(serviceFilter);
-    return matchesSearch && matchesLocation && matchesService;
-  });
-
-  const services = [
-    "Marriage Ceremony",
-    "Griha Pravesh",
-    "Satyanarayan Puja",
-    "Ganesh Puja",
-    "Durga Puja",
-    "Kali Puja",
-    "Lakshmi Puja",
-  ];
+    fetchPandits();
+  }, []);
 
   return (
-    <div className="h-screen ">
-      {/* Header */}
+    <div className="min-h-screen">
       <Headers />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {bookingStep === "search" && (
-          <div>
-            {/* Search Section */}
-            <SearchSection services={services} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <h2 className="text-3xl font-bold text-orange-700 mb-8 text-center">
+          ✨ Available Pandits for Your Divine Occasions ✨
+        </h2>
 
-            {/* Pandits Grid */}
-
-            <PanditSection
-              filteredPandits={filteredPandits}
-              handlePanditSelect={handlePanditSelect}
-            />
+        {/* Loading */}
+        {loading && (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="animate-spin w-8 h-8 text-orange-600 mr-2" />
+            <span className="text-lg text-orange-700">Fetching Pandits...</span>
           </div>
         )}
 
-        {bookingStep === "calendar" && selectedPandit && (
-          <AvailableCalendar
-            selectedPandit={selectedPandit}
-            calendarDates={calendarDates}
-            timeSlots={timeSlots}
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            handleTimeSlotSelect={handleTimeSlotSelect}
-            resetBooking={resetBooking}
-          />
+        {/* Error */}
+        {error && (
+          <p className="text-center text-red-600 font-medium">{error}</p>
         )}
 
-        {bookingStep === "booking" &&
-          selectedPandit &&
-          selectedDate &&
-          selectedTime && (
-           
+        {/* Pandit Cards */}
+        {!loading && !error && pandits.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {pandits.map((pandit) => (
+              <div
+                key={pandit.id}
+                className="backdrop-blur-md bg-white/30 border border-white/40 shadow-lg hover:shadow-2xl transition-all rounded-2xl p-6 relative"
+              >
+                {/* Name + Experience */}
+                <div className="flex items-center gap-4">
+                  <div className="text-5xl">🕉️</div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                      {pandit.name}
+                      <BadgeCheck className="w-5 h-5 text-green-500" />
+                    </h3>
+                    {pandit.address ? (
+                      <p className="text-sm text-gray-700 flex items-center gap-1">
+                        <MapPin className="w-4 h-4 text-orange-500" />
+                        {pandit.address.city}, {pandit.address.state}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">
+                        Location not available
+                      </p>
+                    )}
+                    <p className="text-sm text-orange-600 font-medium flex items-center gap-1">
+                      <Clock className="w-4 h-4" /> {pandit.experience} years experience
+                    </p>
+                  </div>
+                </div>
 
-            <PanditBooking
-    selectedPandit={selectedPandit}
-    selectedDate={selectedDate}
-    selectedTime={selectedTime}
-    setBookingStep={setBookingStep}
-    handleBookingConfirm={handleBookingConfirm}
-  />
-          )}
+                {/* Rating */}
+                <div className="mt-4 flex items-center text-sm text-gray-800">
+                  <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                  <span className="font-semibold">
+                    {pandit.rating > 0 ? pandit.rating.toFixed(1) : "New"}
+                  </span>
+                  {pandit.rating === 0 && (
+                    <span className="ml-1 text-gray-500">(No reviews yet)</span>
+                  )}
+                </div>
 
-       {bookingStep === "confirmation" && (
-  <Accknoledgement 
-    selectedPandit={selectedPandit}
-    selectedDate={selectedDate}
-    selectedTime={selectedTime}
-    resetBooking={resetBooking}
-  />
-)}
+                {/* Services */}
+                <div className="mt-4">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">
+                    Services Offered:
+                  </p>
+                  {pandit.services && pandit.services.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {pandit.services.map((service, idx) => (
+                        <span
+                          key={idx}
+                          className="bg-orange-200/60 text-orange-800 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm"
+                        >
+                          {service}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">
+                      No services listed
+                    </p>
+                  )}
+                </div>
 
+                {/* Contact Info */}
+                <div className="mt-4 space-y-1 text-sm text-gray-700">
+                  {pandit.contactNo && (
+                    <p className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-green-600" />{" "}
+                      {pandit.contactNo}
+                    </p>
+                  )}
+                  {pandit.email && (
+                    <p className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-blue-600" /> {pandit.email}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* No Pandits */}
+        {!loading && !error && pandits.length === 0 && (
+          <p className="text-center text-gray-600">No pandits available.</p>
+        )}
       </div>
     </div>
   );

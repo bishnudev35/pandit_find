@@ -79,6 +79,10 @@ function Header() {
                 <Home className="w-5 h-5" />
                 <span>Home</span>
               </a>
+               <a href="/bookPandit" className="flex items-center space-x-2 text-gray-700 hover:text-orange-600 font-medium py-2 px-3 rounded-lg hover:bg-orange-50">
+                <Phone className="w-5 h-5" />
+                <span>Book Your Pandit</span>
+              </a>
               <a href="/all-bookings" className="flex items-center space-x-2 text-gray-700 hover:text-orange-600 font-medium py-2 px-3 rounded-lg hover:bg-orange-50">
                 <Calendar className="w-5 h-5" />
                 <span>My Bookings</span>
@@ -91,6 +95,7 @@ function Header() {
                 <Phone className="w-5 h-5" />
                 <span>Contact</span>
               </a>
+              
             </nav>
           </div>
 

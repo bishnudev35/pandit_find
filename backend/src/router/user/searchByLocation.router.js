@@ -66,7 +66,7 @@ router.get("/searchByLocation",authMiddleware, async (req, res) => {
 
     // 4. Format response (exclude password, createdAt, updatedAt)
     res.json({
-      userLocation: { latitude: userLat, longitude: userLng },
+      userLocation: userAddress,
       nearbyPandits: nearbyPandits.map((loc) => ({
         pandit: {
           id: loc.pandit.id,

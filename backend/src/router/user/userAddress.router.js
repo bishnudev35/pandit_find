@@ -5,11 +5,10 @@ import authMiddleware from "../../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/userAddress",authMiddleware, async (req, res) => {
+router.post("/userAddress", authMiddleware, async (req, res) => {
   const { address } = req.body;
-  console.log(req.user);
-  const {userId}=req.user;
-  
+  const { userId } = req.user;
+
   try {
     if (
       !userId ||
@@ -25,14 +24,33 @@ router.post("/userAddress",authMiddleware, async (req, res) => {
         .json({ message: "User ID and complete address are required" });
     }
 
-    // Check user exists
+    // ✅ Check user exists
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Build full address string
+    // ✅ Check if same address already exists for this user
+    const existingAddress = await prisma.address.findFirst({
+      where: {
+        userId,
+        street: address.street,
+        city: address.city,
+        state: address.state,
+        country: address.country,
+        zipCode: address.zipCode,
+      },
+    });
+
+    if (existingAddress) {
+      return res.status(200).json({
+        message: "Address already exists for this user",
+        address: existingAddress,
+      });
+    }
+
+    // ✅ Build full address string
     const fullAddress = `${address.street}, ${address.city}, ${address.state}, ${address.country}, ${address.zipCode}`;
-    console.log(process.env.GOOGLE_MAPS_API_KEY)
-    // Call Google Maps Geocoding API
+
+    // ✅ Call Google Maps Geocoding API
     const response = await axios.get(
       `https://maps.googleapis.com/maps/api/geocode/json`,
       {
@@ -42,14 +60,14 @@ router.post("/userAddress",authMiddleware, async (req, res) => {
         },
       }
     );
-    console.log(response.data);
+
     if (response.data.status !== "OK") {
       return res.status(400).json({ message: "Failed to fetch coordinates" });
     }
 
     const { lat, lng } = response.data.results[0].geometry.location;
 
-    // Save new address with lat/lng
+    // ✅ Save new address with lat/lng
     const newAddress = await prisma.address.create({
       data: {
         userId,

@@ -8,6 +8,8 @@ import AboutUs from "./userDashboard/abuotUs.jsx"; // Assuming you have an About
 import AllBooking from "./userDashboard/allBooking.jsx";
 import PanditDashboard from "./panditDashboard/dsahboard.jsx";
 import PanditEarnings from "./panditDashboard/totalEarnings.jsx"; // Assuming you have a PanditEarnings component
+import BookYourPandit from "./userDashboard/bookYourPandit.jsx";
+import Address from "./userDashboard/components/address.jsx";
 // Assuming you have a PanditDashboard component
 export default function App() {
   return (
@@ -27,9 +29,11 @@ export default function App() {
           <Route path="/dashboard" element={<UserDashboard />} />
           <Route path="/header" element={<Header />} />
           <Route path="/about" element={<AboutUs />} />
+          <Route path="/bookPandit" element={<BookYourPandit/>}/>
           <Route path="/all-bookings" element={<AllBooking />} />
           <Route path="/pandit-dashboard" element={<PanditDashboard />} />
           <Route path="/pandit-earnings" element={<PanditEarnings />} />
+          <Route path="/address" element={<Address/>}/>
           {/* Add more routes as needed */}
         </Routes>
 
