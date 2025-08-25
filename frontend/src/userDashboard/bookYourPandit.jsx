@@ -47,6 +47,7 @@ const BookYourPandit = ({ addressId }) => {
         }
 
         const data = await response.json();
+        console.log(data);
         setPandits(data.nearbyPandits || []);
         setUserLocation(data.userLocation || null);
       } catch (err) {
@@ -129,18 +130,28 @@ const BookYourPandit = ({ addressId }) => {
   };
 
   return (
-    <div className="h-screen">
-   
+    <div className="h-screen relative">
+      {/* Glassmorphism background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-200/30 via-yellow-100/20 to-pink-200/30 backdrop-blur-md"></div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {loading && <p className="text-center text-gray-500">Loading pandits...</p>}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {loading && (
+          <p className="text-center text-gray-500">Loading pandits...</p>
+        )}
         {error && <p className="text-center text-red-500">{error}</p>}
 
-        {/* Show user location */}
+        {/* ✅ User Location Glassmorphism Card */}
         {userLocation && (
-          <p className="text-center text-gray-700 mb-4">
-            📍 Your Location: {userLocation.latitude}, {userLocation.longitude}
-          </p>
+          <div className="backdrop-blur-xl bg-white/30 border border-white/40 shadow-lg rounded-2xl p-6 mb-8 text-center">
+            <p className="text-gray-800 font-semibold text-lg">
+              📍 Your Location
+            </p>
+            <p className="text-gray-900 text-base mt-2">
+              {userLocation.street}, {userLocation.city},{" "}
+              {userLocation.state}, {userLocation.country}{" "}
+              {userLocation.zipCode || ""}
+            </p>
+          </div>
         )}
 
         {bookingStep === "search" && (
@@ -148,7 +159,9 @@ const BookYourPandit = ({ addressId }) => {
             filteredPandits={pandits.map((p) => ({
               id: p.pandit.id,
               name: p.pandit.name,
-              location: `${p.location.street}, ${p.location.city}, ${p.location.state}`,
+              location: `${p.location.street}, ${p.location.city}, ${p.location.state}, ${p.location.country} ${
+                p.location.zipCode || ""
+              }`,
               rating: p.pandit.rating,
               experience: p.pandit.experience,
               services: p.pandit.services,
