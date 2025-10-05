@@ -1,10 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 function ConfirmBooking({ panditId, selectedSlots, date, addressId }) {
   const [serviceName, setServiceName] = useState("");
   const [servicePrice, setServicePrice] = useState(500);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+
+  // ✅ Load Razorpay script once
+  useEffect(() => {
+    const loadScript = (src) =>
+      new Promise((resolve) => {
+        const script = document.createElement("script");
+        script.src = src;
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+      });
+    loadScript("https://checkout.razorpay.com/v1/checkout.js");
+  }, []);
 
   const handleBooking = async () => {
     if (!serviceName) {
@@ -25,40 +39,106 @@ function ConfirmBooking({ panditId, selectedSlots, date, addressId }) {
       const token = localStorage.getItem("accessToken");
       const refreshToken = localStorage.getItem("refreshToken");
 
-      const response = await fetch("http://localhost:5400/api/v1/user/booking", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token,
-          "x-refresh-token": refreshToken,
-        },
-        credentials: "include",
-        body: JSON.stringify({
+      // 🟢 STEP 1: Create Razorpay order + booking initiation
+      const { data } = await axios.post(
+        "http://localhost:5400/api/v1/user/booking",
+        {
           panditId,
           startTimes,
-          service: {
-            name: serviceName,
-            price: servicePrice,
-          },
+          service: { name: serviceName, price: servicePrice },
           date,
           addressId,
-        }),
-      });
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+            "x-refresh-token": refreshToken,
+          },
+          withCredentials: true,
+        }
+      );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setMessage(data.message || "Booking failed");
-      } else {
-        setMessage(
-          `Booking successful! Cost: ₹${data.cost}, OTP: ${data.booking.Otp}`
-        );
-        console.log("Booking details:", data.booking);
+      if (!data.razorpayOrder) {
+        setMessage(data.message || "Failed to create Razorpay order");
+        setLoading(false);
+        return;
       }
+
+      // 🟢 STEP 2: Open Razorpay checkout
+      const razorpayOptions = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: data.razorpayOrder.amount,
+        currency: data.razorpayOrder.currency,
+        name: "Pandit Booking",
+        description: serviceName,
+        order_id: data.razorpayOrder.id,
+        handler: async function (response) {
+          // 🟢 STEP 3: Verify payment via same backend route
+          try {
+            const verifyRes = await axios.post(
+              "http://localhost:5400/api/v1/user/booking",
+              {
+                panditId,
+                startTimes,
+                service: { name: serviceName, price: servicePrice },
+                date,
+                addressId,
+                payment: {
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                },
+              },
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: token,
+                  "x-refresh-token": refreshToken,
+                },
+                withCredentials: true,
+              }
+            );
+
+            console.log("✅ Booking response:", verifyRes.data);
+
+            // ✅ FIXED: Access OTP correctly from response
+            const otp = verifyRes.data.booking?.Otp;
+            
+            if (otp) {
+              setMessage(`✅ Booking Confirmed! Payment Successful. OTP: ${otp}`);
+            } else {
+              setMessage("✅ Booking Confirmed! Payment Successful.");
+              console.warn("OTP not found in response:", verifyRes.data);
+            }
+          } catch (verifyErr) {
+            console.error("Payment verification failed:", verifyErr);
+            const errorMsg = verifyErr.response?.data?.message || "Payment verification failed";
+            setMessage(`❌ ${errorMsg}`);
+          }
+        },
+        prefill: {
+          name: "Demo User",
+          email: "demo@example.com",
+          contact: "9999999999",
+        },
+        theme: {
+          color: "#6366F1",
+        },
+        modal: {
+          ondismiss: function () {
+            setLoading(false);
+            setMessage("Payment cancelled by user");
+          },
+        },
+      };
+
+      const razor = new window.Razorpay(razorpayOptions);
+      razor.open();
     } catch (err) {
-      console.error("Error booking:", err);
-      setMessage("Booking failed due to server error");
-    } finally {
+      console.error("Error during booking/payment:", err);
+      const errorMsg = err.response?.data?.message || "Something went wrong while booking";
+      setMessage(`❌ ${errorMsg}`);
       setLoading(false);
     }
   };
@@ -110,12 +190,16 @@ function ConfirmBooking({ panditId, selectedSlots, date, addressId }) {
       <button
         onClick={handleBooking}
         disabled={loading}
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:bg-gray-400"
       >
-        {loading ? "Booking..." : "Confirm Booking"}
+        {loading ? "Processing..." : "Confirm & Pay"}
       </button>
 
-      {message && <p className="mt-4 text-green-600 font-medium">{message}</p>}
+      {message && (
+        <p className={`mt-4 font-medium ${message.includes('❌') ? 'text-red-600' : 'text-green-600'}`}>
+          {message}
+        </p>
+      )}
     </div>
   );
 }

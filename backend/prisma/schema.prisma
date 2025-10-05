@@ -25,6 +25,7 @@ model Pandit {
   id        String   @id @default(cuid())
   name      String
   email     String   @unique
+  
   contactNo String
   password  String
   createdAt DateTime @default(now())
@@ -79,6 +80,7 @@ model Booking {
   panditId  String
   Otp       Int     @default(0) // One-time password for booking confirmation
   duration  Int
+  ammount   Float
   service   String
   feedback  String?
   status    String   @default("BOOKED") // Possible values: BOOKED, COMPLETED, CANCELLED

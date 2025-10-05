@@ -1,109 +1,132 @@
 import express from "express";
 import prisma from "../../lib/db.js";
 import authMiddleware from "../../middleware/authMiddleware.js";
+import Razorpay from "razorpay";
+import crypto from "crypto";
 
 const router = express.Router();
 
-// Utility: add 30 mins to a given time
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_SECRET,
+});
+
 function add30Min(dateStr) {
   const date = new Date(dateStr);
   date.setMinutes(date.getMinutes() + 30);
   return date.toISOString();
 }
 
-router.post("/booking",authMiddleware, async (req, res) => {
-  const {panditId, startTimes, service, date, addressId } = req.body;
-  const {userId}=req.user
+router.post("/booking", authMiddleware, async (req, res) => {
+  const { panditId, startTimes, service, date, addressId, payment } = req.body;
+  const { userId } = req.user;
+
   try {
-    // 1. Validate input
     if (!userId || !panditId || !startTimes || !date || !service || !addressId) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // 2. Check if user exists
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // 3. Check if pandit exists
     const pandit = await prisma.pandit.findUnique({ where: { id: panditId } });
     if (!pandit) return res.status(404).json({ message: "Pandit not found" });
-   
-    const otp = Math.floor(100000 + Math.random() * 900000);
-     console.log(otp); // Example: 483729
-// Generate a 4-digit OTP
-    // 4. Sort startTimes
-    const sortedTimes = [...startTimes].sort();
-    const price=pandit.price || 500;
-    // 5. Calculate cost (half price per 30min slot)
-    const cost = sortedTimes.length * (price / 2);
 
-    // 6. Duration in minutes
+    // ✅ Generate OTP as INTEGER (matches schema: Otp Int)
+    const otp = Math.floor(100000 + Math.random() * 900000);
+
+    const sortedTimes = [...startTimes].sort();
+    const price = pandit.price || 500;
+    const cost = sortedTimes.length * (price / 2);
     const duration = sortedTimes.length * 30;
 
-    // 7. Optionally add next slot if before 21:00
     const lastTime = new Date(sortedTimes[sortedTimes.length - 1]);
     const nextSlot = add30Min(lastTime);
-    if (new Date(nextSlot).getHours() < 21) {
-      sortedTimes.push(nextSlot);
-    }
+    if (new Date(nextSlot).getHours() < 21) sortedTimes.push(nextSlot);
 
-    // 8. Fetch slots from DB via Calendar relation
     const slots = await prisma.timeSlot.findMany({
       where: {
         startTime: { in: sortedTimes.map((t) => new Date(t)) },
-        calendar: {
-          panditId,
-          date: new Date(date),
-        },
+        calendar: { panditId, date: new Date(date) },
       },
     });
 
-    // 9. Check if all requested slots exist & available
     if (slots.length !== sortedTimes.length) {
-      return res
-        .status(400)
-        .json({ message: "Some slots do not exist in calendar" });
+      return res.status(400).json({ message: "Some slots do not exist in calendar" });
     }
+
     const unavailable = slots.find((s) => s.status !== "AVAILABLE");
     if (unavailable) {
-      return res
-        .status(400)
-        .json({ message: `Slot ${unavailable.startTime} not available` });
+      return res.status(400).json({ message: `Slot ${unavailable.startTime} not available` });
     }
 
-    // 10. Create booking
-    const booking = await prisma.booking.create({
-      data: {
-        userId,
-        panditId,
-        service: service.name,
-        duration,
-        addressId,
-        status: "BOOKED",
-        Otp: otp,
-      },
-    });
+    // ✅ If payment exists → verify
+    if (
+      payment &&
+      payment.razorpay_order_id &&
+      payment.razorpay_payment_id &&
+      payment.razorpay_signature
+    ) {
+      const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_SECRET);
+      hmac.update(payment.razorpay_order_id + "|" + payment.razorpay_payment_id);
+      const generatedSignature = hmac.digest("hex");
 
-    // 11. Mark slots as BOOKED & link to booking
-    await prisma.timeSlot.updateMany({
-      where: { id: { in: slots.map((s) => s.id) } },
-      data: { status: "BOOKED", bookingId: booking.id },
-    });
+      if (generatedSignature !== payment.razorpay_signature) {
+        return res.status(400).json({ message: "Payment verification failed" });
+      }
 
-    // 12. Refetch booking with linked slots
-    const bookingWithSlots = await prisma.booking.findUnique({
-      where: { id: booking.id },
-      include: { timeSlots: true },
+      console.log("✅ Payment verified, creating booking...");
+
+      // ✅ FIXED: Match exact Prisma schema fields
+      const booking = await prisma.booking.create({
+        data: {
+          userId,
+          panditId,
+          ammount: cost,
+          service: service.name, // Extract string from service object
+          duration,
+          addressId,
+          status: "BOOKED",
+          Otp: otp, // Integer, not string
+          // Note: razorpayOrderId and razorpayPaymentId don't exist in your schema
+          // If you need to store these, add them to your schema first
+        },
+      });
+
+      console.log("✅ Booking created:", booking.id, "OTP:", booking.Otp);
+
+      // ✅ Update time slots
+      await prisma.timeSlot.updateMany({
+        where: { id: { in: slots.map((s) => s.id) } },
+        data: { status: "BOOKED", bookingId: booking.id },
+      });
+
+      console.log("✅ Slots updated successfully");
+
+      return res.status(201).json({
+        success: true,
+        message: "Booking confirmed successfully",
+        booking: booking,
+      });
+    }
+
+    // 🔹 Else → create order for payment
+    const razorpayOrder = await razorpay.orders.create({
+      amount: cost * 100,
+      currency: "INR",
+      receipt: `booking_${Date.now()}`,
+      payment_capture: 1,
     });
 
     return res.status(201).json({
-      message: "Booking successful",
-      cost,
-      booking: bookingWithSlots,
+      success: true,
+      message: "Booking initiated. Complete payment to confirm.",
+      amount: cost,
+      razorpayOrder,
     });
   } catch (error) {
-    console.error("Error creating booking:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    console.error("❌ Error:", error.message, error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 
