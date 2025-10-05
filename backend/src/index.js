@@ -20,6 +20,7 @@ import AllUserBooking from './router/user/allBooking.router.js';
 import BookingCancel from './router/pandit/bookingCancel.router.js';
 import UserProfile from './router/user/userProfile.router.js';
 import ReputedPandit from './router/user/reputedPandit.router.js';
+import getPanditCalender from './router/user/getPanditCalender.router.js';
 
 const app = express();
 const PORT = process.env.PORT || 5400; // ✅ better to use 5400 (3000 is frontend)
@@ -41,6 +42,7 @@ app.use('/api/v1/user', AllUserBooking);
 app.use('/api/v1/user', UserProfile);
 app.use('/api/v1/user', ReputedPandit);
 app.use('/api/v1/user', Booking);
+app.use('/api/v1/user', getPanditCalender);
 app.use('/api/v1/user', CancelBooking);
 
 app.use('/api/v1/pandit', PanditLogin);

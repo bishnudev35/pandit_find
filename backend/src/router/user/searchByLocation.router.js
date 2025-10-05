@@ -22,7 +22,7 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
   return R * c; // Distance in km
 }
 
-router.get("/searchByLocation",authMiddleware, async (req, res) => {
+router.get("/searchByLocation", authMiddleware, async (req, res) => {
   try {
     const { addressId } = req.query;
 
@@ -43,10 +43,19 @@ router.get("/searchByLocation",authMiddleware, async (req, res) => {
 
     const { latitude: userLat, longitude: userLng } = userAddress;
 
-    // 2. Get all pandit locations with their pandit
+    // 2. Get all pandit locations with pandit, calendar & timeSlots
     const panditLocations = await prisma.location.findMany({
       include: {
-        pandit: true,
+        pandit: {
+          include: {
+            availability: {
+              include: {
+                timeSlots: true,
+              },
+              orderBy: { date: "asc" },
+            },
+          },
+        },
       },
     });
 
@@ -64,7 +73,7 @@ router.get("/searchByLocation",authMiddleware, async (req, res) => {
       return false;
     });
 
-    // 4. Format response (exclude password, createdAt, updatedAt)
+    // 4. Format response
     res.json({
       userLocation: userAddress,
       nearbyPandits: nearbyPandits.map((loc) => ({
@@ -76,6 +85,17 @@ router.get("/searchByLocation",authMiddleware, async (req, res) => {
           services: loc.pandit.services,
           rating: loc.pandit.rating,
           experience: loc.pandit.experience,
+          availability: loc.pandit.availability.map((cal) => ({
+            id: cal.id,
+            date: cal.date,
+            timeSlots: cal.timeSlots.map((slot) => ({
+              id: slot.id,
+              startTime: slot.startTime,
+              endTime: slot.endTime,
+              status: slot.status,
+              bookingId: slot.bookingId,
+            })),
+          })),
         },
         location: {
           id: loc.id,

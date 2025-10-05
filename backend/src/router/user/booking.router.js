@@ -33,9 +33,9 @@ router.post("/booking",authMiddleware, async (req, res) => {
 // Generate a 4-digit OTP
     // 4. Sort startTimes
     const sortedTimes = [...startTimes].sort();
-
+    const price=pandit.price || 500;
     // 5. Calculate cost (half price per 30min slot)
-    const cost = sortedTimes.length * (service.price / 2);
+    const cost = sortedTimes.length * (price / 2);
 
     // 6. Duration in minutes
     const duration = sortedTimes.length * 30;
