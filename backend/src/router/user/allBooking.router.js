@@ -4,7 +4,7 @@ import authMiddleware from '../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get("/allBooking/:userId",authMiddleware, async (req, res) => { 
+router.get("/allBooking",authMiddleware, async (req, res) => { 
     const { userId } =req.user;
     try {
         if (!userId) {
@@ -25,6 +25,7 @@ router.get("/allBooking/:userId",authMiddleware, async (req, res) => {
         duration: true,
         service: true,
         feedback: true,
+        ammount: true,
         status: true,
         Otp : true,
 
