@@ -103,8 +103,9 @@ model Calendar {
   pandit Pandit @relation(fields: [panditId], references: [id])
 
   timeSlots TimeSlot[]
-}
 
+  @@unique([panditId, date]) // Add this unique constraint
+}
 model TimeSlot {
   id         String   @id @default(cuid())
   calendarId String

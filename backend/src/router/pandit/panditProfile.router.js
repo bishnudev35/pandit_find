@@ -3,7 +3,7 @@ import prisma from '../../lib/db.js';
 import authMiddleware from '../../middleware/authMiddleware.js';
 
 const router = express.Router();
-router.get('/panditProfile/:id',authMiddleware, async (req, res) => {
+router.get('/panditProfile',authMiddleware, async (req, res) => {
     const { panditId } = req.user;
 
     try {

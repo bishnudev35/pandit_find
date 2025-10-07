@@ -34,9 +34,10 @@ function generateSlotsForDay(dayStartUTC) {
   return slots;
 }
 
-router.post("/initializeCalendar",authMiddleware, async (req, res) => {
-  const {  startDate } = req.body; // startDate: ISO string
-  const {panditId}=req.user
+router.post("/initializeCalendar", authMiddleware, async (req, res) => {
+  const { startDate } = req.body;
+  const { panditId } = req.user;
+  
   try {
     if (!panditId || !startDate) {
       return res.status(400).json({ message: "Pandit ID and startDate are required" });
@@ -72,61 +73,82 @@ router.post("/initializeCalendar",authMiddleware, async (req, res) => {
       existingCalendars.map((c) => c.date.getTime())
     );
     
+    // Filter out dates that already exist
+    const datesToCreate = normalizedDates.filter(
+      date => !existingDateTimestamps.has(date.getTime())
+    );
+    
     const results = [];
     
-    for (const dayStartUTC of normalizedDates) {
-      const ts = dayStartUTC.getTime();
-      
-      if (existingDateTimestamps.has(ts)) {
-        results.push({
-          date: dayStartUTC,
-          status: "skipped_existing",
-        });
-        continue;
-      }
-      
-      const timeSlots = generateSlotsForDay(dayStartUTC);
-      
+    // Add existing calendars to results
+    existingCalendars.forEach(cal => {
+      results.push({
+        date: cal.date,
+        status: "already_exists",
+        calendarId: cal.id,
+      });
+    });
+    
+    // Create new calendars with transaction for atomicity
+    if (datesToCreate.length > 0) {
       try {
-        const created = await prisma.calendar.create({
-          data: {
-            panditId,
-            date: dayStartUTC,
-            timeSlots: {
-              create: timeSlots.map(slot => ({
-                startTime: slot.startTime,
-                endTime: slot.endTime,
-                status: slot.status,
-              })),
-            },
-          },
-          include: { timeSlots: true }, // so response includes slots
-        });
+        const createdCalendars = await prisma.$transaction(
+          datesToCreate.map(dayStartUTC => {
+            const timeSlots = generateSlotsForDay(dayStartUTC);
+            
+            return prisma.calendar.create({
+              data: {
+                panditId,
+                date: dayStartUTC,
+                timeSlots: {
+                  create: timeSlots.map(slot => ({
+                    startTime: slot.startTime,
+                    endTime: slot.endTime,
+                    status: slot.status,
+                  })),
+                },
+              },
+              include: { timeSlots: true },
+            });
+          })
+        );
         
-        results.push({
-          date: dayStartUTC,
-          status: "initialized",
-          calendar: created,
+        createdCalendars.forEach(calendar => {
+          results.push({
+            date: calendar.date,
+            status: "initialized",
+            calendar,
+          });
         });
       } catch (err) {
+        // Handle unique constraint violation
         if (err?.code === "P2002") {
-          results.push({
-            date: dayStartUTC,
-            status: "skipped_existing",
+          console.error("Duplicate calendar entry detected:", err);
+          return res.status(409).json({ 
+            message: "Some calendars already exist. Please retry.",
+            error: "DUPLICATE_CALENDAR"
           });
-        } else {
-          throw err;
         }
+        throw err;
       }
     }
     
+    // Sort results by date
+    results.sort((a, b) => a.date.getTime() - b.date.getTime());
+    
     return res.status(201).json({
-      message: "Calendars processed for 14 days",
+      message: `Calendars processed for 14 days. Created: ${datesToCreate.length}, Already existed: ${existingCalendars.length}`,
+      totalProcessed: normalizedDates.length,
+      newlyCreated: datesToCreate.length,
+      alreadyExisted: existingCalendars.length,
       results,
     });
   } catch (error) {
     console.error("Error initializing calendars:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ 
+      message: "Internal server error",
+      error: error.message 
+    });
   }
 });
 

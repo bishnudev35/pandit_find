@@ -21,6 +21,7 @@ import BookingCancel from './router/pandit/bookingCancel.router.js';
 import UserProfile from './router/user/userProfile.router.js';
 import ReputedPandit from './router/user/reputedPandit.router.js';
 import getPanditCalender from './router/user/getPanditCalender.router.js';
+import ShowCalender from './router/pandit/showCalender.js';
 
 const app = express();
 const PORT = process.env.PORT || 5400; // ✅ better to use 5400 (3000 is frontend)
@@ -55,6 +56,7 @@ app.use('/api/v1/pandit', CompleteBooking);
 app.use('/api/v1/pandit', AllPanditBooking);
 app.use('/api/v1/pandit', BookingCancel);
 app.use('/api/v1/pandit', PanditProfile);
+app.use('/api/v1/pandit', ShowCalender);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
