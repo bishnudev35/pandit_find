@@ -30,7 +30,7 @@ app.use(express.json());
 
 // ✅ FIXED: correct frontend origin
 app.use(cors({
-  origin: "http://localhost:5173", 
+  origin: "https://pandit-find-3qsjqc2z0-bishnudev35s-projects.vercel.app/", 
   credentials: true
 }));
 
