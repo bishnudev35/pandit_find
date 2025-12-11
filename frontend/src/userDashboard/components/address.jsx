@@ -38,7 +38,7 @@ function Address() {
       }
 
       const response = await fetch(
-        "http://localhost:5400/api/v1/user/userAddress",
+        "https://pandit-find.onrender.com/api/v1/user/userAddress",
         {
           method: "POST",
           headers: {

@@ -29,7 +29,7 @@ function PanditLogin() {
     };
     try {
       const response = await fetch(
-        "http://localhost:5400/api/v1/pandit/panditLogin",
+        "https://pandit-find.onrender.com/api/v1/pandit/panditLogin",
         {
           method: "POST",
           headers: {

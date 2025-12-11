@@ -18,7 +18,7 @@ function AllBookings() {
           return;
         }
 
-        const response = await fetch("http://localhost:5400/api/v1/pandit/allBooking", {
+        const response = await fetch("https://pandit-find.onrender.com/api/v1/pandit/allBooking", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

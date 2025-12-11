@@ -26,7 +26,7 @@ function Header() {
           return;
         }
 
-        const response = await fetch("http://localhost:5400/api/v1/user/userProfile", {
+        const response = await fetch("https://pandit-find.onrender.com/api/v1/user/userProfile", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

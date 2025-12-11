@@ -40,7 +40,7 @@ function UserSignup() {
 
     try {
       const response = await fetch(
-        "http://localhost:5400/api/v1/user/userSignup",
+        "https://pandit-find.onrender.com/api/v1/user/userSignup",
         {
           method: "POST",
           headers: {

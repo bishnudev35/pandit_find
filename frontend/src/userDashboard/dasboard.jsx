@@ -19,7 +19,7 @@ const UserDashboard = () => {
         }
 
         const response = await fetch(
-          "http://localhost:5400/api/v1/user/reputedPandit",
+          "https://pandit-find.onrender.com/api/v1/user/reputedPandit",
           {
             method: "GET",
             headers: {

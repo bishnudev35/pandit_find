@@ -46,7 +46,7 @@ function PanditSignup() {
 
     try {
       const response = await fetch(
-        "http://localhost:5400/api/v1/pandit/PanditSignup",
+        "https://pandit-find.onrender.com/api/v1/pandit/PanditSignup",
         {
           method: "POST",
           headers: {

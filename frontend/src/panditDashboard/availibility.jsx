@@ -17,7 +17,7 @@ function Availability() {
         // current date in ISO format (frontend sends as `startDate`)
         const currentDate = new Date().toISOString();
 
-        const response = await fetch("http://localhost:5400/api/v1/pandit/initializeCalendar", {
+        const response = await fetch("https://pandit-find.onrender.com/api/v1/pandit/initializeCalendar", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -26,7 +26,7 @@ const BookYourPandit = ({ addressId }) => {
         }
 
         const response = await fetch(
-          `http://localhost:5400/api/v1/user/searchByLocation?addressId=${addressId}`,
+          `https://pandit-find.onrender.com/api/v1/user/searchByLocation?addressId=${addressId}`,
           {
             method: "GET",
             headers: {

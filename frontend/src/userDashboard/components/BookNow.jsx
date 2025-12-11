@@ -27,7 +27,7 @@ function PanditAvailableCalendar({ panditId, addressId }) {
         }
 
         const response = await fetch(
-          `http://localhost:5400/api/v1/user/getCalendar/${panditId}`,
+          `https://pandit-find.onrender.com/api/v1/user/getCalendar/${panditId}`,
           {
             method: "GET",
             headers: {

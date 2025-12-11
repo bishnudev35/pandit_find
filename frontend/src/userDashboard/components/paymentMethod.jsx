@@ -41,7 +41,7 @@ function ConfirmBooking({ panditId, selectedSlots, date, addressId }) {
 
       // 🟢 STEP 1: Create Razorpay order + booking initiation
       const { data } = await axios.post(
-        "http://localhost:5400/api/v1/user/booking",
+        "https://pandit-find.onrender.com/api/v1/user/booking",
         {
           panditId,
           startTimes,
@@ -77,7 +77,7 @@ function ConfirmBooking({ panditId, selectedSlots, date, addressId }) {
           // 🟢 STEP 3: Verify payment via same backend route
           try {
             const verifyRes = await axios.post(
-              "http://localhost:5400/api/v1/user/booking",
+              "https://pandit-find.onrender.com/api/v1/user/booking",
               {
                 panditId,
                 startTimes,

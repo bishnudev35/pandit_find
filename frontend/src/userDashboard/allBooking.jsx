@@ -36,7 +36,7 @@ function AllBooking() {
         }
 
         const response = await fetch(
-          `http://localhost:5400/api/v1/user/allBooking`,
+          `https://pandit-find.onrender.com/api/v1/user/allBooking`,
           {
             method: "GET",
             headers: {
