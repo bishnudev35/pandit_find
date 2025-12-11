@@ -1,40 +1,44 @@
 import express from 'express';
 import cors from 'cors';
 
+// your routers...
 import UserLogin from './router/user/userLogin.router.js';
-import PanditLogin from './router/pandit/panditLogin.router.js';
-import PanditSignup from './router/pandit/panditSignup.router.js';
-import UserSignup from './router/user/userSignup.router.js';
-import CompleteProfile from './router/pandit/compliteProfile.router.js';
-import UserAddress from './router/user/userAddress.router.js';
-import InitilizeCalender from './router/pandit/initalizeCalender.router.js';
-import TimeBlock from './router/pandit/timeBlock.router.js';
-import TimeAvailable from './router/pandit/timeAvaliable.router.js';
-import Booking from './router/user/booking.router.js';
-import CancelBooking from './router/user/cancelBooking.router.js';
-import SearchByLocation from './router/user/searchByLocation.router.js';
-import PanditProfile from './router/pandit/panditProfile.router.js';
-import CompleteBooking from './router/pandit/completeBooking.router.js';
-import AllPanditBooking from './router/pandit/allBooking.router.js';
-import AllUserBooking from './router/user/allBooking.router.js';
-import BookingCancel from './router/pandit/bookingCancel.router.js';
-import UserProfile from './router/user/userProfile.router.js';
-import ReputedPandit from './router/user/reputedPandit.router.js';
-import getPanditCalender from './router/user/getPanditCalender.router.js';
+/* ... other imports ... */
 import ShowCalender from './router/pandit/showCalender.js';
 
 const app = express();
-const PORT = process.env.PORT || 5400; // ✅ better to use 5400 (3000 is frontend)
+const PORT = process.env.PORT || 5400;
 
 app.use(express.json());
 
-// ✅ FIXED: correct frontend origin
+// ✅ Allowed origins (no trailing slash)
+const allowedOrigins = [
+  'https://pandit-find.vercel.app',
+  'https://pandit-find-git-main-bishnudev35s-projects.vercel.app',
+  'https://pandit-find-ezt2poj12-bishnudev35s-projects.vercel.app',
+  'http://localhost:3000', // frontend dev origin (adjust if your dev port differs)
+  'http://localhost:5400'  // if you serve frontend there in dev
+];
+
+// dynamic origin check to support credentials and multiple origins
 app.use(cors({
-  origin: "https://pandit-find.vercel.app/", 
-  credentials: true
+  origin: (origin, callback) => {
+    // allow requests with no origin (mobile clients, curl, server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS policy: origin not allowed'), false);
+  },
+  credentials: true, // allow cookies/credentials (only if you actually use them)
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 
-// Routes
+// make sure preflight (OPTIONS) is handled quickly
+app.options('*', cors());
+
+// ---- routes ----
 app.use('/api/v1/user', UserLogin);
 app.use('/api/v1/user', UserSignup);
 app.use('/api/v1/user', UserAddress);
