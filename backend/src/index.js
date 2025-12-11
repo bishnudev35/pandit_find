@@ -1,9 +1,26 @@
 import express from 'express';
 import cors from 'cors';
 
-// routers (keep your imports as-is)
 import UserLogin from './router/user/userLogin.router.js';
-/* ... all other imports ... */
+import PanditLogin from './router/pandit/panditLogin.router.js';
+import PanditSignup from './router/pandit/panditSignup.router.js';
+import UserSignup from './router/user/userSignup.router.js';
+import CompleteProfile from './router/pandit/compliteProfile.router.js';
+import UserAddress from './router/user/userAddress.router.js';
+import InitilizeCalender from './router/pandit/initalizeCalender.router.js';
+import TimeBlock from './router/pandit/timeBlock.router.js';
+import TimeAvailable from './router/pandit/timeAvaliable.router.js';
+import Booking from './router/user/booking.router.js';
+import CancelBooking from './router/user/cancelBooking.router.js';
+import SearchByLocation from './router/user/searchByLocation.router.js';
+import PanditProfile from './router/pandit/panditProfile.router.js';
+import CompleteBooking from './router/pandit/completeBooking.router.js';
+import AllPanditBooking from './router/pandit/allBooking.router.js';
+import AllUserBooking from './router/user/allBooking.router.js';
+import BookingCancel from './router/pandit/bookingCancel.router.js';
+import UserProfile from './router/user/userProfile.router.js';
+import ReputedPandit from './router/user/reputedPandit.router.js';
+import getPanditCalender from './router/user/getPanditCalender.router.js';
 import ShowCalender from './router/pandit/showCalender.js';
 
 const app = express();
@@ -11,28 +28,12 @@ const PORT = process.env.PORT || 5400;
 
 app.use(express.json());
 
-// Allowed origins (no trailing slash)
-const allowedOrigins = [
-  'https://pandit-find.vercel.app',
-  'https://pandit-find-git-main-bishnudev35s-projects.vercel.app',
-  'https://pandit-find-ezt2poj12-bishnudev35s-projects.vercel.app',
-  'http://localhost:3000',
-  'http://localhost:5400'
-];
 
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow server-to-server/postman
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('CORS policy: origin not allowed'), false);
-  },
-  credentials: true,
-  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization','X-Requested-With','Accept']
+  origin: '*', 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
-// IMPORTANT: respond to preflight using a pattern accepted by path-to-regexp
-app.options('/*', cors());
 
 // ---- routes ----
 app.use('/api/v1/user', UserLogin);
